@@ -11,6 +11,10 @@ const userCocktailSchema = new Schema(
       type: Array,
       required: true,
     },
+    recipe: {
+      type: String,
+      required: false,
+    },
     author: {
       type: String,
       required: true,
@@ -21,6 +25,22 @@ const userCocktailSchema = new Schema(
   }
 );
 
-const UserCocktail = mongoose.model("UserCocktail", userCocktailSchema);
+const userCocktailListSchema = new Schema(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    userCocktails: [userCocktailSchema],
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports = UserCocktail;
+const UserCocktailList = mongoose.model(
+  "UserCocktailList",
+  userCocktailListSchema
+);
+
+module.exports = UserCocktailList;

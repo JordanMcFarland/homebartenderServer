@@ -50,4 +50,18 @@ userRouter.post("/login", passport.authenticate("local"), (req, res) => {
   });
 });
 
+//Logout handles serverside?
+// userRouter.get("/logout", (req, res, next) => {
+//   console.log(req);
+//   // if (req.session) {
+//   //   req.session.destroy();
+//   //   res.clearCookie("jwt");
+//   //   res.redirect("/");
+//   // } else {
+//   //   const err = new Error("You are not logged in!");
+//   //   err.status = 401;
+//   //   return next(err);
+//   // }
+// });
+
 module.exports = userRouter;
