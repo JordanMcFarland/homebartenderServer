@@ -2,10 +2,15 @@ var express = require("express");
 const passport = require("passport");
 const User = require("../models/user");
 const authenticate = require("../authenticate");
+const cors = require("./cors");
 
 const userRouter = express.Router();
 
-userRouter.post("/signup", (req, res) => {
+userRouter.options("*", cors.corsWithOptions, (req, res) =>
+  res.sendStatus(200)
+);
+
+userRouter.post("/signup", cors.corsWithOptions, (req, res) => {
   User.register(
     new User({ username: req.body.username }),
     req.body.password,
@@ -39,29 +44,49 @@ userRouter.post("/signup", (req, res) => {
   );
 });
 
-userRouter.post("/login", passport.authenticate("local"), (req, res) => {
-  const token = authenticate.getToken({ _id: req.user._id });
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "application/json");
-  res.json({
-    success: true,
-    token: token,
-    status: "You are successfully logged in!",
-  });
-});
+userRouter.post(
+  "/login",
+  cors.corsWithOptions,
+  passport.authenticate("local"),
+  (req, res) => {
+    const token = authenticate.getToken({ _id: req.user._id });
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json");
+    res.json({
+      success: true,
+      token: token,
+      status: "You are successfully logged in!",
+      user: req.user,
+    });
+  }
+);
 
-//Logout handles serverside?
-// userRouter.get("/logout", (req, res, next) => {
-//   console.log(req);
-//   // if (req.session) {
-//   //   req.session.destroy();
-//   //   res.clearCookie("jwt");
-//   //   res.redirect("/");
-//   // } else {
-//   //   const err = new Error("You are not logged in!");
-//   //   err.status = 401;
-//   //   return next(err);
-//   // }
-// });
+userRouter
+  .route("/usercocktails")
+  .get(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
+    User.findOne({ _id: req.user.id })
+      .then((user) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(user.userCocktails);
+      })
+      .catch((err) => next(err));
+  })
+  .post(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
+    User.findOne({ _id: req.user._id })
+      .then((user) => {
+        req.body.userId = req.user._id;
+        user.userCocktails.push(req.body);
+        user
+          .save()
+          .then((user) => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json(user.userCocktails);
+          })
+          .catch((err) => next(err));
+      })
+      .catch((err) => next(err));
+  });
 
 module.exports = userRouter;
