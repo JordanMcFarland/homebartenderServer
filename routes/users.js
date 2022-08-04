@@ -18,6 +18,7 @@ userRouter.post("/signup", cors.corsWithOptions, (req, res) => {
       if (err) {
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
+        console.log(err);
         res.json({ err: err });
       } else {
         if (req.body.firstname) {
@@ -77,6 +78,49 @@ userRouter
       .then((user) => {
         req.body.userId = req.user._id;
         user.userCocktails.push(req.body);
+        user
+          .save()
+          .then((user) => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json(user.userCocktails);
+          })
+          .catch((err) => next(err));
+      })
+      .catch((err) => next(err));
+  });
+
+userRouter
+  .route("/usercocktails/:userCocktailId")
+  .put(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
+    User.findOne({ _id: req.user._id })
+      .then((user) => {
+        if (req.body.name) {
+          user.userCocktails.id(req.params.userCocktailId).name = req.body.name;
+        }
+        if (req.body.requiredIngredients) {
+          user.userCocktails.id(req.params.userCocktailId).requiredIngredients =
+            req.body.requiredIngredients;
+        }
+        if (req.body.recipe) {
+          user.userCocktails.id(req.params.userCocktailId).recipe =
+            req.body.recipe;
+        }
+        user
+          .save()
+          .then((user) => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json(user.userCocktails);
+          })
+          .catch((err) => next(err));
+      })
+      .catch((err) => next(err));
+  })
+  .delete(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
+    User.findOne({ _id: req.user._id })
+      .then((user) => {
+        user.userCocktails.id(req.params.userCocktailId).remove();
         user
           .save()
           .then((user) => {

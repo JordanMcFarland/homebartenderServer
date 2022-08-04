@@ -9,7 +9,6 @@ const userCocktailSchema = new Schema(
       required: true,
     },
     requiredIngredients: {
-      default: undefined,
       type: [String],
     },
     recipe: {
@@ -36,6 +35,14 @@ const userSchema = new Schema(
       default: "",
     },
     userCocktails: [userCocktailSchema],
+    userBar: {
+      type: [String],
+      default: [],
+    },
+    userFavorites: {
+      type: Array,
+      defualt: [],
+    },
     admin: {
       type: Boolean,
       default: false,
