@@ -24,6 +24,14 @@ const userCocktailSchema = new Schema(
   }
 );
 
+const userFavoritesSchema = new Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
+  userId: { type: Schema.Types.ObjectId },
+});
+
 const userSchema = new Schema(
   {
     firstname: {
@@ -39,10 +47,7 @@ const userSchema = new Schema(
       type: [String],
       default: [],
     },
-    userFavorites: {
-      type: Array,
-      defualt: [],
-    },
+    userFavorites: [userFavoritesSchema],
     admin: {
       type: Boolean,
       default: false,

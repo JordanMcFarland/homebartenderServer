@@ -76,7 +76,7 @@ userRouter
   .post(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
     User.findOne({ _id: req.user._id })
       .then((user) => {
-        req.body.userId = req.user._id;
+        if (!req.body.userId) req.body.userId = req.user._id;
         user.userCocktails.push(req.body);
         user
           .save()
@@ -132,5 +132,109 @@ userRouter
       })
       .catch((err) => next(err));
   });
+
+userRouter
+  .route("/favorites")
+  .get(
+    authenticate.verifyUser,
+    cors.corsWithOptions,
+    async (req, res, next) => {
+      try {
+        const user = await User.findOne({ _id: req.user._id });
+        const populatedUserFavorites = await Promise.all(
+          user.userFavorites.map(async (item) => {
+            console.log(item);
+            if (item.userId && item.userId.toString() !== user._id.toString()) {
+              const otherUser = await User.findOne({ _id: item.userId });
+              const cocktailToAdd = otherUser.userCocktails.id(item._id);
+              if (cocktailToAdd) {
+                return cocktailToAdd;
+              } else {
+                console.log("Could not find cocktail");
+                return item;
+              }
+            } else if (
+              item.userId &&
+              item.userId.toString() === user._id.toString()
+            ) {
+              const cocktailToAdd = user.userCocktails.id(item._id);
+              if (cocktailToAdd) {
+                return cocktailToAdd;
+              } else {
+                console.log("Could not find cocktail");
+                return item;
+              }
+            } else return item;
+          })
+        );
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(populatedUserFavorites);
+      } catch (err) {
+        next(err);
+      }
+    }
+  )
+  .post(
+    authenticate.verifyUser,
+    cors.corsWithOptions,
+    async (req, res, next) => {
+      try {
+        const user = await User.findOne({ _id: req.user._id });
+        if (
+          !user.userFavorites.some(
+            (item) => item._id.toString() === req.body._id.toString()
+          )
+        ) {
+          user.userFavorites.push(req.body);
+          const savedUser = await user.save();
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json({ userFavorites: savedUser.userFavorites, ok: true });
+        } else {
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json");
+          res.json({
+            err: `Cocktail: ${req.body._id} is already a favorite.`,
+            ok: false,
+          });
+        }
+      } catch (err) {
+        next(err);
+      }
+    }
+  )
+  .delete(
+    authenticate.verifyUser,
+    cors.corsWithOptions,
+    async (req, res, next) => {
+      try {
+        const user = await User.findOne({ _id: req.user._id });
+        if (
+          user.userFavorites.some(
+            (item) => item._id.toString() === req.body._id.toString()
+          )
+        ) {
+          const filteredFavorites = user.userFavorites.filter(
+            (fav) => fav._id.toString() !== req.body._id.toString()
+          );
+          user.userFavorites = filteredFavorites;
+          const savedUser = await user.save();
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json({ userFavorites: savedUser.userFavorites, ok: true });
+        } else {
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json");
+          res.json({
+            err: `Could not find cocktail ${req.body._id} in favorites list.`,
+            ok: false,
+          });
+        }
+      } catch (err) {
+        next(err);
+      }
+    }
+  );
 
 module.exports = userRouter;
