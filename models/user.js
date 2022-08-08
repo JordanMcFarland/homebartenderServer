@@ -45,7 +45,6 @@ const userSchema = new Schema(
     userCocktails: [userCocktailSchema],
     userBar: {
       type: [String],
-      default: [],
     },
     userFavorites: [userFavoritesSchema],
     admin: {

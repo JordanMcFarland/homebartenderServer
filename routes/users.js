@@ -237,4 +237,24 @@ userRouter
     }
   );
 
+userRouter
+  .route("/userBar")
+  .put(
+    authenticate.verifyUser,
+    cors.corsWithOptions,
+    async (req, res, next) => {
+      try {
+        const user = await User.findOne({ _id: req.user._id });
+        console.log(req.body);
+        user.userBar = req.body;
+        const savedUser = await user.save();
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ updatedUserBar: savedUser.userBar, ok: true });
+      } catch (err) {
+        next(err);
+      }
+    }
+  );
+
 module.exports = userRouter;
