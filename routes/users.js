@@ -77,7 +77,7 @@ userRouter
           .then((user) => {
             res.statusCode = 200;
             res.setHeader("Content-Type", "application/json");
-            res.json(user.userCocktails);
+            res.json({ userCocktails: user.userCocktails, success: true });
           })
           .catch((err) => next(err));
       })
