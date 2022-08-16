@@ -34,14 +34,6 @@ const userFavoritesSchema = new Schema({
 
 const userSchema = new Schema(
   {
-    firstname: {
-      type: String,
-      default: "",
-    },
-    lastname: {
-      type: String,
-      default: "",
-    },
     userCocktails: [userCocktailSchema],
     userBar: {
       type: [String],

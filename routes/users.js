@@ -18,19 +18,13 @@ userRouter.post("/signup", cors.corsWithOptions, (req, res) => {
       if (err) {
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        console.log(err);
         res.json({ err: err });
       } else {
-        if (req.body.firstname) {
-          user.firstname = req.body.firstname;
-        }
-        if (req.body.lastname) {
-          user.lastname = req.body.lastname;
-        }
         user.save((err) => {
           if (err) {
             res.statusCode = 500;
             res.setHeader("Content-Type", "application/json");
+            res.status;
             res.json({ err: err });
             return;
           }
@@ -245,7 +239,6 @@ userRouter
     async (req, res, next) => {
       try {
         const user = await User.findOne({ _id: req.user._id });
-        console.log(req.body);
         user.userBar = req.body;
         const savedUser = await user.save();
         res.statusCode = 200;
