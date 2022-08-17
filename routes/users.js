@@ -67,21 +67,20 @@ userRouter
       })
       .catch((err) => next(err));
   })
-  .post(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
-    User.findOne({ _id: req.user._id })
-      .then((user) => {
-        if (!req.body.userId) req.body.userId = req.user._id;
-        user.userCocktails.push(req.body);
-        user
-          .save()
-          .then((user) => {
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
-            res.json({ userCocktails: user.userCocktails, success: true });
-          })
-          .catch((err) => next(err));
-      })
-      .catch((err) => next(err));
+  .post(authenticate.verifyUser, cors.corsWithOptions, async (req, res) => {
+    try {
+      const user = await User.findOne({ _id: req.user._id });
+      if (!req.body.userId) req.body.userId = req.user._id;
+      user.userCocktails.push(req.body);
+      const savedUser = await user.save();
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json({ userCocktails: savedUser.userCocktails, success: true });
+    } catch (err) {
+      res.statusCode = 400;
+      res.setHeader("Content-Type", "application/json");
+      res.json({ error: err.message });
+    }
   });
 
 userRouter
