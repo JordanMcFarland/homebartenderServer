@@ -85,46 +85,46 @@ userRouter
 
 userRouter
   .route("/usercocktails/:userCocktailId")
-  .put(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
-    User.findOne({ _id: req.user._id })
-      .then((user) => {
-        if (req.body.name) {
-          user.userCocktails.id(req.params.userCocktailId).name = req.body.name;
-        }
-        if (req.body.requiredIngredients) {
-          user.userCocktails.id(req.params.userCocktailId).requiredIngredients =
-            req.body.requiredIngredients;
-        }
-        if (req.body.recipe) {
-          user.userCocktails.id(req.params.userCocktailId).recipe =
-            req.body.recipe;
-        }
-        user
-          .save()
-          .then((user) => {
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
-            res.json(user.userCocktails);
-          })
-          .catch((err) => next(err));
-      })
-      .catch((err) => next(err));
+  .put(authenticate.verifyUser, cors.corsWithOptions, async (req, res) => {
+    try {
+      const user = await User.findOne({ _id: req.user._id });
+      if (req.body.name) {
+        user.userCocktails.id(req.params.userCocktailId).name = req.body.name;
+      } else {
+        throw new Error("Must provide a cocktail name");
+      }
+      user.userCocktails.id(req.params.userCocktailId).requiredIngredients =
+        req.body.requiredIngredients;
+      user.userCocktails.id(req.params.userCocktailId).recipe = req.body.recipe;
+
+      const savedUser = await user.save();
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json({ userCocktails: savedUser.userCocktails });
+    } catch (err) {
+      res.statusCode = 400;
+      res.setHeader("Content-Type", "application/json");
+      res.json({ error: err.message });
+    }
   })
-  .delete(authenticate.verifyUser, cors.corsWithOptions, (req, res, next) => {
-    User.findOne({ _id: req.user._id })
-      .then((user) => {
+  .delete(
+    authenticate.verifyUser,
+    cors.corsWithOptions,
+    async (req, res, next) => {
+      try {
+        const user = await User.findOne({ _id: req.user._id });
         user.userCocktails.id(req.params.userCocktailId).remove();
-        user
-          .save()
-          .then((user) => {
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
-            res.json(user.userCocktails);
-          })
-          .catch((err) => next(err));
-      })
-      .catch((err) => next(err));
-  });
+        const savedUser = await user.save();
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ userCocktails: savedUser.userCocktails });
+      } catch (err) {
+        res.statusCode = 400;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ error: err.message });
+      }
+    }
+  );
 
 userRouter
   .route("/favorites")
