@@ -9,7 +9,7 @@ const userCocktailSchema = new Schema(
       required: true,
     },
     requiredIngredients: {
-      type: [String],
+      type: [Object],
     },
     recipe: {
       type: String,
